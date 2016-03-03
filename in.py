@@ -1,3 +1,4 @@
+from nltk.classify.naivebayes import NaiveBayesClassifier
 from nltk.collocations import BigramCollocationFinder
 from nltk.corpus import movie_reviews
 import nltk
@@ -12,43 +13,42 @@ stop = stopwords.words('english')
 def normalizeWords(words):
     return [w.lower() for w in words if w.lower() not in stop and w.strip(string.punctuation)]
 
+def sentimentclassification(trainset, testset):
+    (TN, TP, FN, FP) = ( 0 , 0 , 0 , 0)
+    classifier = NaiveBayesClassifier.train(trainset)
+    for (testReview, polarity) in testset:
+        predicted = classifier.classify(testReview)
+        if predicted == polarity:
+            if predicted == 'neg':
+                TN += 1
+            else:
+                TP += 1
+        else:
+            if predicted == 'neg':
+                FN += 1
+            else:
+                FP += 1
 
-unigrams_categorized = [(set(normalizeWords(movie_reviews.words(fileid))), category)
-                        for category in movie_reviews.categories()
-                        for fileid in movie_reviews.fileids(category)]
+    return ((TN, TP, FN, FP))
 
-bigrams_categorized = [(set(bigrams(words)), category)
-                       for (words, category) in unigrams_categorized]
+featureset = []
 
-random.shuffle(unigrams_categorized)
-random.shuffle(bigrams_categorized)
+for fileid in movie_reviews.fileids():
+    all_words_normalized = normalizeWords(movie_reviews.words(fileid))
+    category = movie_reviews.categories(fileid)[0]
 
-all_words_normalized = normalizeWords(movie_reviews.words())
+    bigram_finder = BigramCollocationFinder.from_words(all_words_normalized)
+    most_frequent_bigrams = set(bigram_finder.nbest(BigramAssocMeasures.student_t, 1000))
 
-all_words_dist = nltk.FreqDist(all_words_normalized)
-most_frequent_unigrams = list(all_words_dist)[:2000]
-
-bigram_finder = BigramCollocationFinder.from_words(all_words_normalized)
-most_frequent_bigrams = bigram_finder.nbest(BigramAssocMeasures.student_t, 2000)
-# all_bigrams_dist = nltk.FreqDist(bigrams(all_words_normalized))
-# most_frequent_bigrams = list(all_bigrams_dist)[:2000]
-
-def features_bigrams(document):
-    doc_bigrams = set(document)
     features = {}
+    for unigram in set(all_words_normalized):
+        features['contains({})'.format(unigram)] = True
     for b in most_frequent_bigrams:
-        features['contains({})'.format(b)] = (b in doc_bigrams)
-    return features
+        features['contains({})'.format(b)] = True
 
-def features_unigrams(document):
-    doc_unigrams = set(document)
-    features = {}
-    for unigram in most_frequent_unigrams:
-        features['contains({})'.format(unigram)] = (unigram in doc_unigrams)
-    return features
+    featureset += [(features, category)]
 
-# featureset = [(features_bigrams(bigram), category) for (bigram, category) in bigrams_categorized]
-featureset = [(features_unigrams(unigram), category) for (unigram, category) in unigrams_categorized]
+
 cutpoint = int(len(featureset) * 0.9)
 trainset, testset = featureset[:cutpoint], featureset[cutpoint:]
 
