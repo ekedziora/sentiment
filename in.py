@@ -7,7 +7,7 @@ from nltk.corpus import stopwords
 from nltk.metrics.association import BigramAssocMeasures
 from nltk.metrics.scores import precision, recall
 from collections import defaultdict
-import random
+from sklearn import cross_validation
 
 stop = stopwords.words('english')
 
@@ -67,19 +67,40 @@ def precision_recall(classifier, testFeatures):
     return precisions, recalls
 
 featureset = []
+labels = []
+foldsCount = 10
 
 for category in movie_reviews.categories():
     for fileid in movie_reviews.fileids(category):
         features = bagOfWordsFeatures(movie_reviews.words(fileid))
         featureset += [(features, category)]
+        labels.append(category)
 
-random.shuffle(featureset)
-cutpoint = int(len(featureset) * 0.9)
-trainset, testset = featureset[:cutpoint], featureset[cutpoint:]
+cv_iter = cross_validation.StratifiedKFold(labels, n_folds=foldsCount)
 
+i = 1
+accurancySum = 0.0
+precisionSums = defaultdict(float)
+recallSums = defaultdict(float)
+for train, test in cv_iter:
+    trainset = [featureset[i] for i in train]
+    testset = [featureset[i] for i in test]
+    classifier = nltk.NaiveBayesClassifier.train(trainset)
+    print("Fold {}:".format(i))
+    i += 1
+    accurancy = nltk.classify.accuracy(classifier, testset)
+    accurancySum += accurancy
+    print("Accurancy: {}".format(accurancy))
+    precisions, recalls = precision_recall(classifier, testset)
+    for label, value in precisions.items():
+        print("Precision for {}: {}".format(label, value))
+        precisionSums[label] += value
+    for label, value in recalls.items():
+        print("Recall for {}: {}".format(label, value))
+        recallSums[label] += value
 
-classifier = nltk.NaiveBayesClassifier.train(trainset)
-print("Accurancy: {}".format(nltk.classify.accuracy(classifier, testset)))
-precisions, recalls = precision_recall(classifier, testset)
-print(precisions)
-print(recalls)
+print("Average accurancy: {}".format(accurancySum/foldsCount))
+for label, sum in precisionSums.items():
+    print("Average precision for {}: {}".format(label, sum/foldsCount))
+for label, sum in recallSums.items():
+    print("Average recall for {}: {}".format(label, sum/foldsCount))
