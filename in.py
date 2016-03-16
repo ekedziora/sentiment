@@ -8,11 +8,13 @@ from nltk.metrics.association import BigramAssocMeasures
 from nltk.metrics.scores import precision, recall
 from collections import defaultdict
 from sklearn import cross_validation
+from nltk.stem.porter import PorterStemmer
 
 stop = stopwords.words('english')
+stemmer = PorterStemmer()
 
 def normalizeWords(words):
-    return [w.lower() for w in words if w.lower() not in stop and w.strip(string.punctuation)]
+    return [stemmer.stem(w.lower()) for w in words if w.lower() not in stop and w.strip(string.punctuation)]
 
 def findMostFrequentBigrams(words, scoreFunction=BigramAssocMeasures.chi_sq, count=200):
     bigram_finder = BigramCollocationFinder.from_words(words)
