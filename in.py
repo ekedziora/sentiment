@@ -7,6 +7,8 @@ from nltk.corpus import stopwords
 from nltk.metrics.association import BigramAssocMeasures
 from nltk.metrics.scores import precision, recall
 from collections import defaultdict
+from nltk.corpus import wordnet
+from nltk.stem.wordnet import WordNetLemmatizer
 from sklearn import cross_validation
 
 stop = stopwords.words('english')
@@ -18,8 +20,28 @@ def findMostFrequentBigrams(words, scoreFunction=BigramAssocMeasures.chi_sq, cou
     bigram_finder = BigramCollocationFinder.from_words(words)
     return set(bigram_finder.nbest(scoreFunction, count))
 
+def get_wordnet_pos(tag):
+    if tag.startswith('J'):
+        return wordnet.ADJ
+    elif tag.startswith('V'):
+        return wordnet.VERB
+    elif tag.startswith('N'):
+        return wordnet.NOUN
+    elif tag.startswith('R'):
+        return wordnet.ADV
+    else:
+        return ''
+
 def bagOfWordsFeatures(words):
-    all_words_normalized = normalizeWords(words)
+    lemmatizer = WordNetLemmatizer()
+    posss = nltk.pos_tag(normalizeWords(words))
+    all_words_normalized = []
+    for word, tag in posss:
+        if get_wordnet_pos(tag) != '':
+            all_words_normalized.append(lemmatizer.lemmatize(word, get_wordnet_pos(tag)))
+        else:
+            all_words_normalized.append(word)
+
     most_frequent_bigrams = findMostFrequentBigrams(all_words_normalized, count=2000)
 
     features = {}
