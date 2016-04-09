@@ -7,6 +7,8 @@ from nltk import ConditionalFreqDist
 from collections import defaultdict
 from nltk.metrics.scores import precision, recall
 from sklearn import cross_validation
+from nltk.classify.scikitlearn import SklearnClassifier
+from sklearn.naive_bayes import BernoulliNB
 from featureExtractors import trigramsFeatures, bigramsFeatures, unigramsFeatures
 import nltk
 
@@ -94,8 +96,7 @@ def createWordsInCategoriesDictionary(corpus, normalizationFunction):
     return [(label, normalizationFunction(corpus.words(categories=[label]))) for label in corpus.categories()]
 
 def performCrossValidation(featureset, labels, foldsCount, debugMode):
-    global precisions
-    accurancySum = 0.0
+    accuracySum = 0.0
     precisionSums = defaultdict(float)
     recallSums = defaultdict(float)
     crossValidationIterations = cross_validation.StratifiedKFold(labels, n_folds=foldsCount)
@@ -105,13 +106,16 @@ def performCrossValidation(featureset, labels, foldsCount, debugMode):
         classifier = nltk.NaiveBayesClassifier.train(trainset)
         # classifier = nltk.MaxentClassifier.train(trainset, algorithm='gis', trace=0, max_iter=20, min_lldelta=0.1)
         # classifier = SklearnClassifier(NuSVC()).train(trainset)
-        classifier.show_most_informative_features()
+        # classifier = SklearnClassifier(BernoulliNB()).train(trainset)
 
-        accurancy = nltk.classify.accuracy(classifier, testset)
-        accurancySum += accurancy
+        classifier.show_most_informative_features(100)
+
+
+        accuracy = nltk.classify.accuracy(classifier, testset)
+        accuracySum += accuracy
 
         if debugMode:
-            print("Accurancy: {}".format(accurancy))
+            print("Accurancy: {}".format(accuracy))
 
         precisions, recalls = precision_recall(classifier, testset)
 
@@ -124,7 +128,7 @@ def performCrossValidation(featureset, labels, foldsCount, debugMode):
                 print("Recall for {}: {}".format(label, value))
             recallSums[label] += value
 
-    print("Average accurancy: {0:.3f}".format(accurancySum/foldsCount))
+    print("Average accurancy: {0:.3f}".format(accuracySum/foldsCount))
     precRecall = {label: (sum/foldsCount, recallSums.get(label)/foldsCount) for label, sum in precisionSums.items()}
     for label, (prec, recall) in precRecall.items():
         print("Average precision for {0}: {1:.3f}".format(label, prec))
