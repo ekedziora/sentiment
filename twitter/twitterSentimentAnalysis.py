@@ -1,30 +1,33 @@
 from nltk.corpus.reader import CategorizedPlaintextCorpusReader
 from nltk.tokenize.casual import TweetTokenizer
-from utils import bagOfWordsFeatures, findBestWords, findMostFrequentBigrams, findMostFrequentTrigrams, \
-    createWordsInCategoriesDictionary, performCrossValidation, bestUnigramsWithPosFeatures, bestUnigramsWithPosFeaturesTaggedForNormalizedWords
+from utils import findBestWords, findMostFrequentBigrams, findMostFrequentTrigrams, createWordsInCategoriesDictionary, performCrossValidation
 from featureExtractors import *
-from normalization import normalizeTwitterWords, normalizeTwitterWordsWithExtraFeatures
+from normalization import normalizeTwitterWords, normalizeTwitterWordsWithExtraFeatures, normalizeTwitterWordsWithNegationHandle
 
 tweetTokenizer = TweetTokenizer(reduce_len=True, preserve_case=True, strip_handles=False)
-trainCorpus = CategorizedPlaintextCorpusReader('corpus/standford/sample', r'(pos|neg)-tweet[0-9]+\.txt',
-                                               cat_pattern=r'(\w+)-tweet[0-9]+\.txt', word_tokenizer=tweetTokenizer)
+# corpus = CategorizedPlaintextCorpusReader('corpus/standford/sample', r'(pos|neg)-tweet[0-9]+\.txt',
+#                                                cat_pattern=r'(\w+)-tweet[0-9]+\.txt', word_tokenizer=tweetTokenizer)
 # testCorpus = CategorizedPlaintextCorpusReader('corpus/standford/test', r'(pos|neg|neu)-tweet[0-9]+\.txt', cat_pattern=r'(\w+)-tweet[0-9]+\.txt', word_tokenizer=tweetTokenizer)
+corpus = CategorizedPlaintextCorpusReader('corpus/twitter-data/manualsSO', r'(\w+)-tweet[0-9]+\.txt',
+                                                cat_pattern=r'(\w+)-tweet[0-9]+\.txt', word_tokenizer=tweetTokenizer)
 
 featureset = []
 labels = []
 normalizationFunction = normalizeTwitterWords
 
-allWordsNormalized = normalizationFunction(trainCorpus.words())
-wordsInCategories = createWordsInCategoriesDictionary(trainCorpus, normalizationFunction)
-bestWords = findBestWords(wordsInCategories, max_words=4000)
-# bestBigrams = findMostFrequentBigrams(allWordsNormalized, count=30000)
-# bestTrigrams = findMostFrequentTrigrams(allWordsNormalized, count=30000)
+allWordsNormalized = normalizationFunction(corpus.words())
+wordsInCategories = createWordsInCategoriesDictionary(corpus, normalizationFunction)
+bestWordsCount = int(len(allWordsNormalized) * 0.2)
+bestWords = findBestWords(wordsInCategories, max_words=bestWordsCount)
+# bestBigrams = findMostFrequentBigrams(allWordsNormalized, count=2000)
+# bestTrigrams = findMostFrequentTrigrams(allWordsNormalized, count=5000)
+initDictionary()
 
-print("best unigramy + pos presence")
+print("bigrams + extra + obj count")
 i = 1
-for category in trainCorpus.categories():
-    for fileid in trainCorpus.fileids(category):
-        words = trainCorpus.words(fileids=[fileid])
+for category in corpus.categories():
+    for fileid in corpus.fileids(category):
+        words = corpus.words(fileids=[fileid])
         normalizedWords = normalizationFunction(words)
         features = {}
         extraNormalizedWords = normalizeTwitterWordsWithExtraFeatures(words)
@@ -33,8 +36,10 @@ for category in trainCorpus.categories():
         # features.update(bigramsFeatures(normalizedWords, bestBigrams))
         # features.update(trigramsFeatures(normalizedWords, bestTrigrams))
         # features.update(sentiwordnetSentimentWordsCountFeatures(wordsTagged))
-        features.update(posTagsPresenceFeatrues(wordsTagged))
-        # features.update(extraTwitterFeaturesPresence(extraNormalizedWords))
+        # features.update(mpqaSubjectivityWordsScoreFeatures(wordsTagged))
+        features.update(posTagsCountFeatures(wordsTagged))
+        features.update(mpqaObjectivityWordsScoreFeatures(wordsTagged))
+        features.update(extraTwitterFeaturesPresence(extraNormalizedWords))
         featureset += [(features, category)]
         labels.append(category)
         print(i)

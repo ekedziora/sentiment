@@ -16,6 +16,18 @@ def translateFromNltkToWordnetTag(tag):
     else:
         return ''
 
+def translateFromNltkToMpqaTag(tag):
+    if tag.startswith('J'):
+        return 'adj'
+    elif tag.startswith('V'):
+        return 'verb'
+    elif tag.startswith('N'):
+        return 'noun'
+    elif tag.startswith('R'):
+        return 'adverb'
+    else:
+        return ''
+
 def doWordnetLemmatization(words):
     wordsTagged = nltk.pos_tag(words)
     lemmatized = []

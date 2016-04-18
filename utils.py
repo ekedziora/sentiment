@@ -8,7 +8,9 @@ from collections import defaultdict
 from nltk.metrics.scores import precision, recall
 from sklearn import cross_validation
 from nltk.classify.scikitlearn import SklearnClassifier
-from sklearn.naive_bayes import BernoulliNB
+from sklearn.naive_bayes import BernoulliNB, MultinomialNB
+from sklearn.svm import SVC, LinearSVC, NuSVC, LinearSVR, NuSVR
+from sklearn.linear_model import LogisticRegression, LinearRegression, Perceptron
 from featureExtractors import trigramsFeatures, bigramsFeatures, unigramsFeatures
 import nltk
 
@@ -47,33 +49,6 @@ def findBestWords(wordsInCategories, scoreFunction=BigramAssocMeasures.chi_sq, m
     best = sorted(word_scores.items(), key=lambda t: t[1], reverse=True)[:max_words]
     return set([w for w, s in best])
 
-
-# returns featrues: unigrams (limited if constraint set is present), bigrams and trigrams if constraint sets are present
-def bagOfWordsFeatures(wordsNormalized, bestWords = set(), mostFrequentBigrams = set(), mostFrequentTrigrams = set()):
-    features = {}
-
-    features.update(unigramsFeatures(wordsNormalized, bestWords=bestWords))
-
-    if mostFrequentBigrams:
-        features.update(bigramsFeatures(wordsNormalized, bestBigrams=mostFrequentBigrams))
-
-    if mostFrequentTrigrams:
-        features.update(trigramsFeatures(wordsNormalized, bestTrigrams=mostFrequentBigrams))
-
-    return features
-
-# returns unigrams with pos tags
-def bestUnigramsWithPosFeatures(words, bestWords, normalizationFunction):
-    wordsTagged = nltk.pos_tag(words)
-    normalizedWords = normalizationFunction(wordsTagged)
-    unigramsWithPos = [(word, tag) for word, tag in normalizedWords.items() if word in bestWords]
-    return {str(unigramWithPos): True for unigramWithPos in unigramsWithPos}
-
-# returns unigrams with pos tags from normalized words list
-def bestUnigramsWithPosFeaturesTaggedForNormalizedWords(normalizedWords, bestWords):
-    wordsTagged = nltk.pos_tag(normalizedWords)
-    return {str((word, tag)): True for word, tag in wordsTagged if word in bestWords}
-
 def precision_recall(classifier, testFeatures):
     refsets = defaultdict(set)
     testsets = defaultdict(set)
@@ -103,13 +78,11 @@ def performCrossValidation(featureset, labels, foldsCount, debugMode):
     for train, test in crossValidationIterations:
         trainset = [featureset[i] for i in train]
         testset = [featureset[i] for i in test]
-        classifier = nltk.NaiveBayesClassifier.train(trainset)
+        # classifier = nltk.NaiveBayesClassifier.train(trainset)
         # classifier = nltk.MaxentClassifier.train(trainset, algorithm='gis', trace=0, max_iter=20, min_lldelta=0.1)
         # classifier = SklearnClassifier(NuSVC()).train(trainset)
-        # classifier = SklearnClassifier(BernoulliNB()).train(trainset)
-
-        classifier.show_most_informative_features(100)
-
+        # classifier = SklearnClassifier(LogisticRegression()).train(trainset)
+        classifier = SklearnClassifier(MultinomialNB()).train(trainset)
 
         accuracy = nltk.classify.accuracy(classifier, testset)
         accuracySum += accuracy

@@ -6,6 +6,10 @@ from nltk.stem.porter import PorterStemmer
 hashtag_code = "_hashtag_"
 user_handle_code = "_user_handle_"
 url_code = "_url_"
+retweet_code = "_retweet_"
+positive_emoticon_code = "_positive_emoticon_"
+negative_emoticon_code = "_negative_emoticon_"
+emoticon_code = "_emoticon_"
 
 stop = stopwords.words('english')
 notWantedChars = string.punctuation + string.whitespace + string.digits
@@ -18,7 +22,10 @@ def normalizeWords(words):
 urlRegex = r'^(?:(?:https?|ftp)://)(?:\S+(?::\S*)?@)?(?:(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]+-?)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]+-?)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,})))(?::\d{2,5})?(?:/[^\s]*)?$'
 wwwRegex = r'^www\.\w+(\.\w{2,3})+.*$'
 userHandleRegex = r'(^|[^@\w])@(\w{1,15})\b'
-hashtagRegex = r"#+[\w_]+[\w\'_\-]*[\w_]+"
+hashtagRegex = r'#+[\w_]+[\w\'_\-]*[\w_]+'
+positiveEmoticonRegex = r'\|?>?[:*;Xx8=]-?o?\^?[DPpb3)}\]>]\)?'
+negativeEmoticonRegex = r'([:><].?-?[@><cC(\[{\|]\|?|[D][:8;=X]<?|v.v)'
+emoticonRegex = r'[<>]?[:;=8][\-o\*\']?[\)\]\(\[dDpP/\:\}\{@\|\\]|[\)\]\(\[dDpP/\:\}\{@\|\\][\-o\*\']?[:;=8][<>]?'
 
 def normalizeTwitterWords(words):
     return [word for word in normalizeWords(words) if not re.match(hashtagRegex, word) and not re.match(urlRegex, word)
@@ -38,6 +45,14 @@ def normalizeTwitterWordsWithExtraFeatures(words):
             words[i] = user_handle_code
         elif re.match(hashtagRegex, word):
             words[i] = hashtag_code
+        elif re.match(positiveEmoticonRegex, word):
+            words[i] = positive_emoticon_code
+        elif re.match(negativeEmoticonRegex, word):
+            words[i] = negative_emoticon_code
+        elif re.match(emoticonRegex, word):
+            words[i] = emoticon_code
+        elif word == 'RT':
+            words[i] = retweet_code
         elif (word.lower() in stop or word.lower() in notWantedChars) and word != "!" and word != "?":
             del words[i]
     return words
@@ -82,3 +97,6 @@ def stripNegation(word):
         return word[4:]
     else:
         return word
+
+def isWordNegated(word):
+    return word.startswith("NEG_") or word.startswith("neg_")

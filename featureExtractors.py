@@ -1,8 +1,9 @@
 import nltk
 import collections
-from normalization import hashtag_code, url_code, user_handle_code
-from stemmingLemmingUtils import translateFromNltkToWordnetTag
+from normalization import hashtag_code, url_code, user_handle_code, retweet_code, positive_emoticon_code, negative_emoticon_code, emoticon_code, isWordNegated
+from stemmingLemmingUtils import translateFromNltkToWordnetTag, translateFromNltkToMpqaTag
 from nltk.corpus import sentiwordnet
+from lexicons.mpqa.subjectivity_clues_hltemnlp05.mpqaDictionary import *
 
 def unigramsFeatures(normalizedWords, bestWords = set()):
     if bestWords:
@@ -32,10 +33,13 @@ def trigramsFeatures(normalizedWords, bestTrigrams = set()):
 
     return {str(trigram): True for trigram in trigrams}
 
+def bestUnigramsWithPosFeaturesTaggedForNormalizedWords(normalizedWords, bestWords):
+    wordsTagged = nltk.pos_tag(normalizedWords)
+    return {str((word, tag)): True for word, tag in wordsTagged if word in bestWords}
+
 def sentiwordnetSentimentScoreFeatures(wordsTagged):
     posScoreSum = 0.0
     negScoreSum = 0.0
-    wordsCount = 0
     for word, tag in wordsTagged:
         wordnetTag = translateFromNltkToWordnetTag(tag)
         if wordnetTag:
@@ -44,13 +48,10 @@ def sentiwordnetSentimentScoreFeatures(wordsTagged):
             synsets = list(sentiwordnet.senti_synsets(word))
         if len(synsets) > 0:
             synset = synsets[0]
-            wordsCount += 1
             posScoreSum = synset.pos_score()
             negScoreSum = synset.neg_score()
 
-    posScore = 0 if wordsCount == 0 else posScoreSum/wordsCount
-    negScore = 0 if wordsCount == 0 else negScoreSum/wordsCount
-    return {"pos_score": posScore, "neg_score": negScore}
+    return {"pos_neg_score": posScoreSum - negScoreSum}
 
 def sentiwordetSentimentWordsPresenceFeatures(wordsTagged):
     features = {}
@@ -86,14 +87,93 @@ def sentiwordnetSentimentWordsCountFeatures(wordsTagged):
                 features["neg_word_count"] = features["neg_word_presence"] + 1
     return features
 
+def mpqaSentimentWordsCountFeatures(wordsTagged):
+    features = collections.defaultdict(int)
+    for word, tag in wordsTagged:
+        mpqaTag = translateFromNltkToMpqaTag(tag)
+        polarity = getPolarity(word, mpqaTag)
+        if polarity is not None:
+            features["mpqa_" + polarity] = features["mpqa_" + polarity] + 1
+    return features
+
+def mpqaSentimentWordsPresenceFeatures(wordsTagged):
+    features = {}
+    for word, tag in wordsTagged:
+        mpqaTag = translateFromNltkToMpqaTag(tag)
+        polarity = getPolarity(word, mpqaTag)
+        if polarity is not None:
+            features["mpqa_" + polarity] = True
+    return features
+
+def mpqaObjectivityWordsScoreFeatures(wordsTagged):
+    features = collections.defaultdict(int)
+    wordsCount = 0
+    for word, tag in wordsTagged:
+        mpqaTag = translateFromNltkToMpqaTag(tag)
+        objectivity = getObjectivity(word, mpqaTag)
+        if objectivity is not None:
+            wordsCount += 1
+            features["mpqa_" + objectivity] = features["mpqa_" + objectivity] + 1
+    return {key: value/wordsCount if wordsCount > 0 else 0 for key, value in features.items()}
+
+def mpqaObjectivityWordsPresenceFeatures(wordsTagged):
+    features = {}
+    for word, tag in wordsTagged:
+        mpqaTag = translateFromNltkToMpqaTag(tag)
+        objectivity = getObjectivity(word, mpqaTag)
+        if objectivity is not None:
+            features["mpqa_" + objectivity] = True
+    return features
+
+def mpqaObjectivityWordsCountFeatures(wordsTagged):
+    features = collections.defaultdict(int)
+    wordsCount = 0
+    for word, tag in wordsTagged:
+        mpqaTag = translateFromNltkToMpqaTag(tag)
+        objectivity = getObjectivity(word, mpqaTag)
+        if objectivity is not None:
+            wordsCount += 1
+            features["mpqa_" + objectivity] = features["mpqa_" + objectivity] + 1
+    return features
+
+def mpqaSubjectivityPresenceFeatures(wordsTagged):
+    features = {}
+    for word, tag in wordsTagged:
+        mpqaTag = translateFromNltkToMpqaTag(tag)
+        subjectivity = getSubjectivity(word, mpqaTag)
+        if subjectivity is not None:
+            features["mpqa_" + subjectivity] = True
+    return features
+
+def mpqaSubjectivityWordsScoreFeatures(wordsTagged):
+    features = collections.defaultdict(int)
+    wordsCount = 0
+    for word, tag in wordsTagged:
+        mpqaTag = translateFromNltkToMpqaTag(tag)
+        subjectivity = getSubjectivity(word, mpqaTag)
+        if subjectivity is not None:
+            wordsCount += 1
+            features["mpqa_" + subjectivity] = features["mpqa_" + subjectivity] + 1
+    return {key: value/wordsCount if wordsCount > 0 else 0 for key, value in features.items()}
+
+def mpqaSubjectivityWordsCountFeatures(wordsTagged):
+    features = collections.defaultdict(int)
+    wordsCount = 0
+    for word, tag in wordsTagged:
+        mpqaTag = translateFromNltkToMpqaTag(tag)
+        subjectivity = getSubjectivity(word, mpqaTag)
+        if subjectivity is not None:
+            wordsCount += 1
+            features["mpqa_" + subjectivity] = features["mpqa_" + subjectivity] + 1
+    return features
+
 def posTagsCountFeatures(wordsTagged):
     posTags = [tag for word, tag in wordsTagged]
     return {tag: posTags.count(tag) for tag in posTags}
 
-def posTagsRatioFeatures(normalizedWords):
-    wordsTagged = nltk.pos_tag(normalizedWords)
+def posTagsRatioFeatures(wordsTagged):
     posTags = [tag for word, tag in wordsTagged]
-    return {tag: posTags.count(tag)/len(normalizedWords) for tag in posTags}
+    return {tag: posTags.count(tag)/len(wordsTagged) for tag in posTags}
 
 def posTagsPresenceFeatrues(wordsTagged):
     posTags = set([tag for word, tag in wordsTagged])
@@ -103,11 +183,19 @@ def extraTwitterFeaturesCount(normalizedWords):
     features = collections.defaultdict(int)
     for word in normalizedWords:
         if word == hashtag_code:
-            features["hashtag"] = features["hashtag"] + 1
+            features["extra_hashtag"] = features["extra_hashtag"] + 1
         elif word == user_handle_code:
-            features["user_handle"] = features["user_handle"] + 1
+            features["extra_user_handle"] = features["extra_user_handle"] + 1
         elif word == url_code:
-            features["url"] = features["url"] + 1
+            features["extra_url"] = features["extra_url"] + 1
+        elif word == retweet_code:
+            features["extra_retweet"] = features["extra_retweet"] + 1
+        elif word == positive_emoticon_code:
+            features["extra_pos_emoticon"] = features["extra_pos_emoticon"] + 1
+        elif word == negative_emoticon_code:
+            features["extra_neg_emoticon"] = features["extra_neg_emoticon"] + 1
+        elif word == emoticon_code:
+            features["extra_emoticon"] = features["extra_emoticon"] + 1
         elif "!" in word:
             features["exclamation_mark"] = features["exclamation_mark"] + word.count("!")
         elif "?" in word:
@@ -127,6 +215,14 @@ def extraTwitterFeaturesPresence(normalizedWords):
             features["extra_user_handle"] = True
         elif word == url_code:
             features["extra_url"] = True
+        elif word == retweet_code:
+            features["extra_retweet"] = True
+        elif word == positive_emoticon_code:
+            features["extra_pos_emoticon"] = True
+        elif word == negative_emoticon_code:
+            features["extra_neg_emoticon"] = True
+        elif word == emoticon_code:
+            features["extra_emoticon"] = True
         elif "!" in word:
             features["extra_exclamation_mark"] = True
         elif "?" in word:
