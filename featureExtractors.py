@@ -53,7 +53,7 @@ def sentiwordnetSentimentScoreFeatures(wordsTagged):
 
     return {"pos_neg_score": posScoreSum - negScoreSum}
 
-def sentiwordetSentimentWordsPresenceFeatures(wordsTagged):
+def sentiwordnetSentimentWordsPresenceFeatures(wordsTagged):
     features = {}
     for word, tag in wordsTagged:
         wordnetTag = translateFromNltkToWordnetTag(tag)
