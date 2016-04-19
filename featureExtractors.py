@@ -87,81 +87,81 @@ def sentiwordnetSentimentWordsCountFeatures(wordsTagged):
                 features["neg_word_count"] = features["neg_word_presence"] + 1
     return features
 
-def mpqaSentimentWordsCountFeatures(wordsTagged):
+def mpqaSentimentWordsCountFeatures(wordsTagged, dictionary):
     features = collections.defaultdict(int)
     for word, tag in wordsTagged:
         mpqaTag = translateFromNltkToMpqaTag(tag)
-        polarity = getPolarity(word, mpqaTag)
+        polarity = dictionary.getPolarity(word, mpqaTag)
         if polarity is not None:
             features["mpqa_" + polarity] = features["mpqa_" + polarity] + 1
     return features
 
-def mpqaSentimentWordsPresenceFeatures(wordsTagged):
+def mpqaSentimentWordsPresenceFeatures(wordsTagged, dictionary):
     features = {}
     for word, tag in wordsTagged:
         mpqaTag = translateFromNltkToMpqaTag(tag)
-        polarity = getPolarity(word, mpqaTag)
+        polarity = dictionary.getPolarity(word, mpqaTag)
         if polarity is not None:
             features["mpqa_" + polarity] = True
     return features
 
-def mpqaObjectivityWordsScoreFeatures(wordsTagged):
+def mpqaObjectivityWordsScoreFeatures(wordsTagged, dictionary):
     features = collections.defaultdict(int)
     wordsCount = 0
     for word, tag in wordsTagged:
         mpqaTag = translateFromNltkToMpqaTag(tag)
-        objectivity = getObjectivity(word, mpqaTag)
+        objectivity = dictionary.getObjectivity(word, mpqaTag)
         if objectivity is not None:
             wordsCount += 1
             features["mpqa_" + objectivity] = features["mpqa_" + objectivity] + 1
     return {key: value/wordsCount if wordsCount > 0 else 0 for key, value in features.items()}
 
-def mpqaObjectivityWordsPresenceFeatures(wordsTagged):
+def mpqaObjectivityWordsPresenceFeatures(wordsTagged, dictionary):
     features = {}
     for word, tag in wordsTagged:
         mpqaTag = translateFromNltkToMpqaTag(tag)
-        objectivity = getObjectivity(word, mpqaTag)
+        objectivity = dictionary.getObjectivity(word, mpqaTag)
         if objectivity is not None:
             features["mpqa_" + objectivity] = True
     return features
 
-def mpqaObjectivityWordsCountFeatures(wordsTagged):
+def mpqaObjectivityWordsCountFeatures(wordsTagged, dictionary):
     features = collections.defaultdict(int)
     wordsCount = 0
     for word, tag in wordsTagged:
         mpqaTag = translateFromNltkToMpqaTag(tag)
-        objectivity = getObjectivity(word, mpqaTag)
+        objectivity = dictionary.getObjectivity(word, mpqaTag)
         if objectivity is not None:
             wordsCount += 1
             features["mpqa_" + objectivity] = features["mpqa_" + objectivity] + 1
     return features
 
-def mpqaSubjectivityPresenceFeatures(wordsTagged):
+def mpqaSubjectivityPresenceFeatures(wordsTagged, dictionary):
     features = {}
     for word, tag in wordsTagged:
         mpqaTag = translateFromNltkToMpqaTag(tag)
-        subjectivity = getSubjectivity(word, mpqaTag)
+        subjectivity = dictionary.getSubjectivity(word, mpqaTag)
         if subjectivity is not None:
             features["mpqa_" + subjectivity] = True
     return features
 
-def mpqaSubjectivityWordsScoreFeatures(wordsTagged):
+def mpqaSubjectivityWordsScoreFeatures(wordsTagged, dictionary):
     features = collections.defaultdict(int)
     wordsCount = 0
     for word, tag in wordsTagged:
         mpqaTag = translateFromNltkToMpqaTag(tag)
-        subjectivity = getSubjectivity(word, mpqaTag)
+        subjectivity = dictionary.getSubjectivity(word, mpqaTag)
         if subjectivity is not None:
             wordsCount += 1
             features["mpqa_" + subjectivity] = features["mpqa_" + subjectivity] + 1
     return {key: value/wordsCount if wordsCount > 0 else 0 for key, value in features.items()}
 
-def mpqaSubjectivityWordsCountFeatures(wordsTagged):
+def mpqaSubjectivityWordsCountFeatures(wordsTagged, dictionary):
     features = collections.defaultdict(int)
     wordsCount = 0
     for word, tag in wordsTagged:
         mpqaTag = translateFromNltkToMpqaTag(tag)
-        subjectivity = getSubjectivity(word, mpqaTag)
+        subjectivity = dictionary.getSubjectivity(word, mpqaTag)
         if subjectivity is not None:
             wordsCount += 1
             features["mpqa_" + subjectivity] = features["mpqa_" + subjectivity] + 1

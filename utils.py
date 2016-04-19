@@ -12,7 +12,7 @@ from sklearn.naive_bayes import BernoulliNB, MultinomialNB
 from sklearn.svm import SVC, LinearSVC, NuSVC, LinearSVR, NuSVR
 from sklearn.linear_model import LogisticRegression, LinearRegression, Perceptron
 from featureExtractors import trigramsFeatures, bigramsFeatures, unigramsFeatures
-import nltk
+import nltk, pickle
 
 def findMostFrequentBigrams(words, scoreFunction=BigramAssocMeasures.chi_sq, count=200):
     bigram_finder = BigramCollocationFinder.from_words(words)
@@ -78,11 +78,16 @@ def performCrossValidation(featureset, labels, foldsCount, debugMode):
     for train, test in crossValidationIterations:
         trainset = [featureset[i] for i in train]
         testset = [featureset[i] for i in test]
-        # classifier = nltk.NaiveBayesClassifier.train(trainset)
+        classifier = nltk.NaiveBayesClassifier.train(trainset)
         # classifier = nltk.MaxentClassifier.train(trainset, algorithm='gis', trace=0, max_iter=20, min_lldelta=0.1)
         # classifier = SklearnClassifier(NuSVC()).train(trainset)
         # classifier = SklearnClassifier(LogisticRegression()).train(trainset)
-        classifier = SklearnClassifier(MultinomialNB()).train(trainset)
+        # classifier = SklearnClassifier(MultinomialNB()).train(trainset)
+
+        with open("classifierDump", 'wb') as fileout:
+            pickle.dump(classifier, fileout)
+
+        classifier.show_most_informative_features(500)
 
         accuracy = nltk.classify.accuracy(classifier, testset)
         accuracySum += accuracy

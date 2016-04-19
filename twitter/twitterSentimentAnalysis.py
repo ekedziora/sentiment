@@ -19,11 +19,10 @@ allWordsNormalized = normalizationFunction(corpus.words())
 wordsInCategories = createWordsInCategoriesDictionary(corpus, normalizationFunction)
 bestWordsCount = int(len(allWordsNormalized) * 0.2)
 bestWords = findBestWords(wordsInCategories, max_words=bestWordsCount)
-# bestBigrams = findMostFrequentBigrams(allWordsNormalized, count=2000)
-# bestTrigrams = findMostFrequentTrigrams(allWordsNormalized, count=5000)
-initDictionary()
+bestBigrams = findMostFrequentBigrams(allWordsNormalized, count=bestWordsCount)
+bestTrigrams = findMostFrequentTrigrams(allWordsNormalized, count=bestWordsCount)
+mpqaDictionary = MpqaDictionaryWrapper()
 
-print("bigrams + extra + obj count")
 i = 1
 for category in corpus.categories():
     for fileid in corpus.fileids(category):
@@ -33,12 +32,12 @@ for category in corpus.categories():
         extraNormalizedWords = normalizeTwitterWordsWithExtraFeatures(words)
         wordsTagged = nltk.pos_tag(normalizedWords)
         features = unigramsFeatures(normalizedWords, bestWords)
-        # features.update(bigramsFeatures(normalizedWords, bestBigrams))
-        # features.update(trigramsFeatures(normalizedWords, bestTrigrams))
-        # features.update(sentiwordnetSentimentWordsCountFeatures(wordsTagged))
-        # features.update(mpqaSubjectivityWordsScoreFeatures(wordsTagged))
+        features.update(bigramsFeatures(normalizedWords, bestBigrams))
+        features.update(trigramsFeatures(normalizedWords, bestTrigrams))
+        features.update(sentiwordnetSentimentWordsCountFeatures(wordsTagged))
+        features.update(mpqaSubjectivityWordsScoreFeatures(wordsTagged, mpqaDictionary))
         features.update(posTagsCountFeatures(wordsTagged))
-        features.update(mpqaObjectivityWordsScoreFeatures(wordsTagged))
+        features.update(mpqaObjectivityWordsScoreFeatures(wordsTagged, mpqaDictionary))
         features.update(extraTwitterFeaturesPresence(extraNormalizedWords))
         featureset += [(features, category)]
         labels.append(category)
