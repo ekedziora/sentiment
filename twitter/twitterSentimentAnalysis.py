@@ -3,6 +3,7 @@ from nltk.tokenize.casual import TweetTokenizer
 from utils import findBestWords, findMostFrequentBigrams, findMostFrequentTrigrams, createWordsInCategoriesDictionary, performCrossValidation
 from featureExtractors import *
 from normalization import normalizeTwitterWords, normalizeTwitterWordsWithExtraFeatures, normalizeTwitterWordsWithNegationHandle
+from lexicons.mpqa.mpqaDictionary import MpqaDictionaryWrapper
 
 tweetTokenizer = TweetTokenizer(reduce_len=True, preserve_case=True, strip_handles=False)
 # corpus = CategorizedPlaintextCorpusReader('corpus/standford/sample', r'(pos|neg)-tweet[0-9]+\.txt',

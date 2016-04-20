@@ -5,7 +5,7 @@ newFolder = r'manualsSO'
 if not os.path.exists(newFolder):
     os.makedirs(newFolder)
 
-file = open("Manually-Annotated-Tweets.tsv", encoding='utf8')
+file = open("Manually-Annotated-Tweets.tsv")
 
 
 def getSentimentAsString(sentiment):
@@ -22,6 +22,6 @@ for index, line in enumerate(file.read().splitlines()):
         sentiment = getSentimentAsString(splitted[1])
         tweetId = index
         tweetContent = splitted[0].strip()
-        file = open(r'{}/{}-tweet{}.txt'.format(newFolder, sentiment, tweetId), 'w+', encoding='utf8')
+        file = open(r'{}/{}-tweet{}.txt'.format(newFolder, sentiment, tweetId), 'w+')
         file.write(tweetContent)
         file.close()

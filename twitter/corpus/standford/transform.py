@@ -5,7 +5,7 @@ newFolder = r'trainAll'
 if not os.path.exists(newFolder):
     os.makedirs(newFolder)
 
-csvFile = open("training.1600000.processed.noemoticon_utf8.csv", encoding='utf8')
+csvFile = open("training.1600000.processed.noemoticon_utf8.csv")
 reader = csv.reader(csvFile)
 
 
@@ -24,7 +24,7 @@ for index, row in enumerate(reader):
     sentiment = getSentimentAsStringFromInt(row[0])
     tweetId = int(row[1])
     tweetContent = row[5]
-    file = open(r'{}/{}-tweet{}.txt'.format(newFolder, sentiment, tweetId), 'w+', encoding='utf8')
+    file = open(r'{}/{}-tweet{}.txt'.format(newFolder, sentiment, tweetId), 'w+')
     file.write(tweetContent)
     if index % 200 == 0:
         print("Processed {} tweets".format(index))

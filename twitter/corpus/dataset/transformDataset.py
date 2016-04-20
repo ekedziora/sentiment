@@ -6,7 +6,7 @@ for newFolder in newFolders:
     if not os.path.exists(newFolder):
         os.makedirs(newFolder)
 
-csvFile = open("Sentiment Analysis Dataset.csv", encoding='utf8')
+csvFile = open("Sentiment Analysis Dataset.csv")
 reader = csv.reader(csvFile)
 
 
@@ -26,5 +26,5 @@ for index, row in enumerate(reader):
         sentiment = getSentimentAsStringFromInt(row[0])
         tweetId = int(row[1])
         tweetContent = row[5]
-        file = open(r'train/{}/tweet{}.txt'.format(sentiment, tweetId), 'w+', encoding='utf8')
+        file = open(r'train/{}/tweet{}.txt'.format(sentiment, tweetId), 'w+')
         file.write(tweetContent)

@@ -37,7 +37,7 @@ for user in users:
 
     for tweet in allTweets:
         id = tweet.id
-        with open(r'{}/neu-tweet{}.txt'.format(newFolder, id), 'w', encoding='utf-8') as outfile:
+        with open(r'{}/neu-tweet{}.txt'.format(newFolder, id), 'w') as outfile:
             outfile.write(tweet.text)
 
     print("Global tweets downloaded: {}".format(globalCount))

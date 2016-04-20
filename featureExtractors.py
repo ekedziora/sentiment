@@ -3,7 +3,6 @@ import collections
 from normalization import hashtag_code, url_code, user_handle_code, retweet_code, positive_emoticon_code, negative_emoticon_code, emoticon_code, isWordNegated
 from stemmingLemmingUtils import translateFromNltkToWordnetTag, translateFromNltkToMpqaTag
 from nltk.corpus import sentiwordnet
-from lexicons.mpqa.subjectivity_clues_hltemnlp05.mpqaDictionary import *
 
 def unigramsFeatures(normalizedWords, bestWords = set()):
     if bestWords:

@@ -5,7 +5,7 @@ newFolder = r'data'
 if not os.path.exists(newFolder):
     os.makedirs(newFolder)
 
-csvFile = open("full-corpus.csv", encoding='utf8')
+csvFile = open("full-corpus.csv")
 reader = csv.reader(csvFile)
 
 
@@ -25,5 +25,5 @@ for index, row in enumerate(reader):
     if sentiment is not None:
         tweetId = int(row[2])
         tweetContent = row[4]
-        file = open(r'{}/{}-tweet{}.txt'.format(newFolder, sentiment, tweetId), 'w+', encoding='utf8')
+        file = open(r'{}/{}-tweet{}.txt'.format(newFolder, sentiment, tweetId), 'w+')
         file.write(tweetContent)
