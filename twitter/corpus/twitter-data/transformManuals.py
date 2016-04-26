@@ -24,6 +24,8 @@ for index, line in enumerate(file.read().splitlines()):
         sentiment = getSentimentAsString(splitted[1])
         tweetId = index
         tweetContent = splitted[0].strip()
+        if not tweetContent:
+            continue
         file = open(r'{}/{}-tweet{}.txt'.format(newFolder, sentiment, tweetId), 'w+', encoding='utf8')
         file.write(tweetContent)
         file.close()

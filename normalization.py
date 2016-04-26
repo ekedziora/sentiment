@@ -1,7 +1,7 @@
 from nltk.corpus import stopwords
 from stemmingLemmingUtils import doStemming
 import string, re
-from nltk.stem.porter import PorterStemmer
+from nltk.stem.snowball import SnowballStemmer
 
 hashtag_code = "_hashtag_"
 user_handle_code = "_user_handle_"
@@ -67,7 +67,7 @@ def normalizationFunction(word):
 negationRegex = r"(?:^(?:never|no|nothing|nowhere|noone|none|not|havent|hasnt|hadnt|cant|couldnt|shouldnt|wont|wouldnt|dont|doesnt|didnt|isnt|arent|aint)$)|n't"
 clauseLevelPunctuationRegex = r"^[.:;!?]$"
 
-def handleNegation(words):
+def handleNegationSimple(words):
     i = 0
     while i + 1 < len(words):
         if re.match(negationRegex, words[i]):
@@ -78,19 +78,19 @@ def handleNegation(words):
 
     return words
 
-# def handleNegation(words):
-#     i = 0
-#     while i < len(words):
-#         if re.match(negationRegex, words[i]):
-#             j = i + 1
-#             while j < len(words) and not re.match(clauseLevelPunctuationRegex, words[j]):
-#                 words[j] = "NEG_" + words[j]
-#                 j += 1
-#             i = j
-#         else:
-#             i += 1
-#
-#     return words
+def handleNegation(words):
+    i = 0
+    while i < len(words):
+        if re.match(negationRegex, words[i]):
+            j = i + 1
+            while j < len(words) and not re.match(clauseLevelPunctuationRegex, words[j]):
+                words[j] = "NEG_" + words[j]
+                j += 1
+            i = j
+        else:
+            i += 1
+
+    return words
 
 def stripNegation(word):
     if word.startswith("NEG_") or word.startswith("neg_"):

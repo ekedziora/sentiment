@@ -28,8 +28,7 @@ def translateFromNltkToMpqaTag(tag):
     else:
         return ''
 
-def doWordnetLemmatization(words):
-    wordsTagged = nltk.pos_tag(words)
+def doWordnetLemmatization(wordsTagged):
     lemmatized = []
     for word, tag in wordsTagged:
         wordnetTag = translateFromNltkToWordnetTag(tag)

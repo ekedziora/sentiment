@@ -5,7 +5,7 @@ class MpqaDictionaryWrapper:
     dictionary = {}
 
     def __init__(self):
-        file = open("C:\\Users\\ekedz\\PycharmProjects\\sentiment\\lexicons\\mpqa\\subjectivity_clues_hltemnlp05\\subjclueslen1-HLTEMNLP05.tff", encoding='utf8')
+        file = open("../lexicons/mpqa/subjclueslen1-HLTEMNLP05.tff", encoding='utf8')
 
         for line in file.read().splitlines():
             pairs = line.split()

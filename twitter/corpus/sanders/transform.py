@@ -25,5 +25,7 @@ for index, row in enumerate(reader):
     if sentiment is not None:
         tweetId = int(row[2])
         tweetContent = row[4]
+        if not tweetContent:
+            continue
         file = open(r'{}/{}-tweet{}.txt'.format(newFolder, sentiment, tweetId), 'w+', encoding='utf8')
         file.write(tweetContent)
