@@ -1,5 +1,6 @@
 anyPosTag = "anypos"
 
+
 class MpqaDictionaryWrapper:
 
     dictionary = {}
@@ -47,3 +48,10 @@ class MpqaDictionaryWrapper:
             value = self.dictionary.get((word, anyPosTag))
 
         return value[0] if value is not None else None
+
+    def getOppositePolarity(self, polarity):
+        if polarity == 'positive':
+            return 'negative'
+        if polarity == 'negative':
+            return 'positive'
+        return polarity

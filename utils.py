@@ -67,10 +67,68 @@ def precision_recall(classifier, testFeatures):
 
     return precisions, recalls
 
+def precision_recall_2step(polarClassifier, sentiClassifier, testFeatures):
+    refsets = defaultdict(set)
+    testsets = defaultdict(set)
+
+    trues = 0
+    for i, (feats, label) in enumerate(testFeatures):
+        refsets[label].add(i)
+        dec = polarClassifier.classify(feats)
+        ispolar = dec == 'polar'
+        if ispolar:
+            observed = sentiClassifier.classify(feats)
+        else:
+            observed = 'neu'
+
+        if observed == label[:3]:
+            trues += 1
+        testsets[observed].add(i)
+
+    precisions = {}
+    recalls = {}
+
+    for label in ['pos', 'neg', 'neu']:
+        precisions[label] = precision(refsets[label], testsets[label])
+        recalls[label] = recall(refsets[label], testsets[label])
+
+    accuracy = float(trues)/len(testFeatures)
+
+    return precisions, recalls, accuracy
+
+def precision_recall_2way(classifier, testFeatures, threshold):
+    refsets = defaultdict(set)
+    testsets = defaultdict(set)
+
+    probs = classifier.prob_classify_many([feats for (feats, label) in testFeatures])
+
+    trues = 0
+    for i, (feats, label) in enumerate(testFeatures):
+        refsets[label].add(i)
+        observed = classifier.classify(feats)
+        prob = probs[i]
+        if prob.prob(observed) < threshold:
+            observed = 'neu'
+        testsets[observed].add(i)
+        if observed == label:
+            trues += 1
+
+    precisions = {}
+    recalls = {}
+
+    for label in classifier.labels():
+        precisions[label] = precision(refsets[label], testsets[label])
+        recalls[label] = recall(refsets[label], testsets[label])
+
+    accuracy = float(trues)/len(testFeatures)
+
+    return precisions, recalls, accuracy
+
+
 def createWordsInCategoriesDictionary(corpus, normalizationFunction):
     return [(label, normalizationFunction(corpus.words(categories=[label]))) for label in corpus.categories()]
 
-def performCrossValidation(featureset, labels, foldsCount, debugMode):
+def performCrossValidation(featureset, labels, foldsCount, sklearnclassifier):
     accuracySum = 0.0
     precisionSums = defaultdict(float)
     recallSums = defaultdict(float)
@@ -78,32 +136,16 @@ def performCrossValidation(featureset, labels, foldsCount, debugMode):
     for train, test in crossValidationIterations:
         trainset = [featureset[i] for i in train]
         testset = [featureset[i] for i in test]
-        classifier = nltk.NaiveBayesClassifier.train(trainset)
-        # classifier = nltk.MaxentClassifier.train(trainset, algorithm='gis', trace=0, max_iter=20, min_lldelta=0.1)
-        # classifier = SklearnClassifier(NuSVC()).train(trainset)
-        # classifier = SklearnClassifier(LogisticRegression()).train(trainset)
-        # classifier = SklearnClassifier(MultinomialNB()).train(trainset)
-
-        with open("classifierDump", 'wb') as fileout:
-            pickle.dump(classifier, fileout)
-
-        classifier.show_most_informative_features(500)
+        classifier = SklearnClassifier(sklearnclassifier).train(trainset)
 
         accuracy = nltk.classify.accuracy(classifier, testset)
         accuracySum += accuracy
 
-        if debugMode:
-            print("Accurancy: {}".format(accuracy))
-
         precisions, recalls = precision_recall(classifier, testset)
 
         for label, value in precisions.items():
-            if debugMode:
-                print("Precision for {}: {}".format(label, value))
             precisionSums[label] += value
         for label, value in recalls.items():
-            if debugMode:
-                print("Recall for {}: {}".format(label, value))
             recallSums[label] += value
 
     print("Average accurancy: {0:.3f}".format(accuracySum/foldsCount))
@@ -113,3 +155,21 @@ def performCrossValidation(featureset, labels, foldsCount, debugMode):
         print("Average recall for {0}: {1:.3f}".format(label, recall))
         fmeasure = 2 * prec * recall/(prec + recall)
         print("Average f measure for {0}: {1:.3f}".format(label, fmeasure))
+
+def performTestValidation(trainset, testset, sklearnclassifier, threshold = None):
+        classifier = SklearnClassifier(sklearnclassifier).train(trainset)
+        accuracy = nltk.classify.accuracy(classifier, testset)
+        if threshold is None:
+            precisions, recalls = precision_recall(classifier, testset)
+        else:
+            precisions, recalls, real_accuracy = precision_recall_2way(classifier, testset, threshold)
+            print("Real accuracy: {0:.3f}".format(real_accuracy))
+
+        print("Test accuracy: {0:.3f}".format(accuracy))
+        precRecall = {label: (precision, recalls.get(label)) for label, precision in precisions.items()}
+        for label, (prec, recall) in precRecall.items():
+            print("Precision for {0}: {1:.3f}".format(label, prec))
+            print("Recall for {0}: {1:.3f}".format(label, recall))
+            fmeasure = 2 * prec * recall/(prec + recall)
+            print("F measure for {0}: {1:.3f}".format(label, fmeasure))
+

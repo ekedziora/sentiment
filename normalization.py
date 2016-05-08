@@ -14,11 +14,6 @@ emoticon_code = "_emoticon_"
 stop = stopwords.words('english')
 notWantedChars = string.punctuation + string.whitespace + string.digits
 
-def normalizeWords(words):
-    return [w.lower() for w in words if stripNegation(w).lower() not in stop and stripNegation(w).strip(notWantedChars)]
-
-######################### TWIITER #######################################################
-
 urlRegex = r'^(?:(?:https?|ftp)://)(?:\S+(?::\S*)?@)?(?:(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]+-?)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]+-?)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,})))(?::\d{2,5})?(?:/[^\s]*)?$'
 wwwRegex = r'^www\.\w+(\.\w{2,3})+.*$'
 userHandleRegex = r'(^|[^@\w])@(\w{1,15})\b'
@@ -26,6 +21,12 @@ hashtagRegex = r'#+[\w_]+[\w\'_\-]*[\w_]+'
 positiveEmoticonRegex = r'\|?>?[:*;Xx8=]-?o?\^?[DPpb3)}\]>]\)?'
 negativeEmoticonRegex = r'([:><].?-?[@><cC(\[{\|]\|?|[D][:8;=X]<?|v.v)'
 emoticonRegex = r'[<>]?[:;=8][\-o\*\']?[\)\]\(\[dDpP/\:\}\{@\|\\]|[\)\]\(\[dDpP/\:\}\{@\|\\][\-o\*\']?[:;=8][<>]?'
+
+negationRegex = r"(?:^(?:never|no|nothing|nowhere|noone|none|not|havent|hasnt|hadnt|cant|couldnt|shouldnt|wont|wouldnt|dont|doesnt|didnt|isnt|arent|aint)$)|n't"
+clauseLevelPunctuationRegex = r"^[.:;!?]$"
+
+def normalizeWords(words):
+    return [w.lower() for w in words if stripNegation(w).strip(notWantedChars)]
 
 def normalizeTwitterWords(words):
     return [word for word in normalizeWords(words) if not re.match(hashtagRegex, word) and not re.match(urlRegex, word)
@@ -63,9 +64,6 @@ def normalizeTwitterWordsWithPos(wordsWithPos):
 
 def normalizationFunction(word):
     return not re.match(hashtagRegex, word) and not re.match(urlRegex, word) and not re.match(wwwRegex, word) and not re.match(userHandleRegex, word)
-
-negationRegex = r"(?:^(?:never|no|nothing|nowhere|noone|none|not|havent|hasnt|hadnt|cant|couldnt|shouldnt|wont|wouldnt|dont|doesnt|didnt|isnt|arent|aint)$)|n't"
-clauseLevelPunctuationRegex = r"^[.:;!?]$"
 
 def handleNegationSimple(words):
     i = 0
