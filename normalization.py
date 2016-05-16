@@ -58,13 +58,6 @@ def normalizeTwitterWordsWithExtraFeatures(words):
             del words[i]
     return words
 
-def normalizeTwitterWordsWithPos(wordsWithPos):
-    words = [w for w in normalizeWords([word for word, tag in wordsWithPos]) if normalizationFunction(w)]
-    return {word: tag for word, tag in wordsWithPos if word in words}
-
-def normalizationFunction(word):
-    return not re.match(hashtagRegex, word) and not re.match(urlRegex, word) and not re.match(wwwRegex, word) and not re.match(userHandleRegex, word)
-
 def handleNegationSimple(words):
     i = 0
     while i + 1 < len(words):

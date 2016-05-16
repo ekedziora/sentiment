@@ -156,14 +156,10 @@ def performCrossValidation(featureset, labels, foldsCount, sklearnclassifier):
         fmeasure = 2 * prec * recall/(prec + recall)
         print("Average f measure for {0}: {1:.3f}".format(label, fmeasure))
 
-def performTestValidation(trainset, testset, sklearnclassifier, threshold = None):
+def performTestValidation(trainset, testset, sklearnclassifier):
         classifier = SklearnClassifier(sklearnclassifier).train(trainset)
         accuracy = nltk.classify.accuracy(classifier, testset)
-        if threshold is None:
-            precisions, recalls = precision_recall(classifier, testset)
-        else:
-            precisions, recalls, real_accuracy = precision_recall_2way(classifier, testset, threshold)
-            print("Real accuracy: {0:.3f}".format(real_accuracy))
+        precisions, recalls = precision_recall(classifier, testset)
 
         print("Test accuracy: {0:.3f}".format(accuracy))
         precRecall = {label: (precision, recalls.get(label)) for label, precision in precisions.items()}
@@ -173,3 +169,14 @@ def performTestValidation(trainset, testset, sklearnclassifier, threshold = None
             fmeasure = 2 * prec * recall/(prec + recall)
             print("F measure for {0}: {1:.3f}".format(label, fmeasure))
 
+def performTestValidation3way(trainset, testset, sklearnclassifier, threshold):
+    classifier = SklearnClassifier(sklearnclassifier).train(trainset)
+    precisions, recalls, accuracy = precision_recall_2way(classifier, testset, threshold)
+
+    print("Test accuracy: {0:.3f}".format(accuracy))
+    precRecall = {label: (precision, recalls.get(label)) for label, precision in precisions.items()}
+    for label, (prec, recall) in precRecall.items():
+        print("Precision for {0}: {1:.3f}".format(label, prec))
+        print("Recall for {0}: {1:.3f}".format(label, recall))
+        fmeasure = 2 * prec * recall/(prec + recall)
+        print("F measure for {0}: {1:.3f}".format(label, fmeasure))

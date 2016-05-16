@@ -44,6 +44,7 @@ def sentiwordnetSentimentScoreFeatures(wordsTagged):
     negScoreSum = 0.0
     for word, tag in wordsTagged:
         wordnetTag = translateFromNltkToWordnetTag(tag)
+        word = stripNegation(word)
         if wordnetTag:
             synsets = list(sentiwordnet.senti_synsets(word, wordnetTag))
         else:
@@ -136,6 +137,7 @@ def mpqaObjectivityWordsScoreFeatures(wordsTagged, dictionary):
     wordsCount = 0
     for word, tag in wordsTagged:
         mpqaTag = translateFromNltkToMpqaTag(tag)
+        word = stripNegation(word)
         objectivity = dictionary.getObjectivity(word, mpqaTag)
         if objectivity is not None:
             wordsCount += 1
@@ -146,6 +148,7 @@ def mpqaObjectivityWordsPresenceFeatures(wordsTagged, dictionary):
     features = {}
     for word, tag in wordsTagged:
         mpqaTag = translateFromNltkToMpqaTag(tag)
+        word = stripNegation(word)
         objectivity = dictionary.getObjectivity(word, mpqaTag)
         if objectivity is not None:
             features["mpqa_" + objectivity] = True
@@ -156,6 +159,7 @@ def mpqaObjectivityWordsCountFeatures(wordsTagged, dictionary):
     wordsCount = 0
     for word, tag in wordsTagged:
         mpqaTag = translateFromNltkToMpqaTag(tag)
+        word = stripNegation(word)
         objectivity = dictionary.getObjectivity(word, mpqaTag)
         if objectivity is not None:
             wordsCount += 1
@@ -166,6 +170,7 @@ def mpqaSubjectivityPresenceFeatures(wordsTagged, dictionary):
     features = {}
     for word, tag in wordsTagged:
         mpqaTag = translateFromNltkToMpqaTag(tag)
+        word = stripNegation(word)
         subjectivity = dictionary.getSubjectivity(word, mpqaTag)
         if subjectivity is not None:
             features["mpqa_" + subjectivity] = True
@@ -176,6 +181,7 @@ def mpqaSubjectivityWordsScoreFeatures(wordsTagged, dictionary):
     wordsCount = 0
     for word, tag in wordsTagged:
         mpqaTag = translateFromNltkToMpqaTag(tag)
+        word = stripNegation(word)
         subjectivity = dictionary.getSubjectivity(word, mpqaTag)
         if subjectivity is not None:
             wordsCount += 1
@@ -187,6 +193,7 @@ def mpqaSubjectivityWordsCountFeatures(wordsTagged, dictionary):
     wordsCount = 0
     for word, tag in wordsTagged:
         mpqaTag = translateFromNltkToMpqaTag(tag)
+        word = stripNegation(word)
         subjectivity = dictionary.getSubjectivity(word, mpqaTag)
         if subjectivity is not None:
             wordsCount += 1
