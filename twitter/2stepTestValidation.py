@@ -23,16 +23,15 @@ def performTestValidation(testset, polarClassifierName, sentiClassifierName):
         with open(sentiClassifierName, 'rb') as fileout:
             sentiClassifier = pickle.load(fileout)
 
-
-        precisions, recalls, accuracy = precision_recall_2step(polarClassifier, sentiClassifier, testset)
+        labels = ['pos', 'neg', 'neu']
+        precisions, recalls, fscores, accuracy = precision_recall_2step(polarClassifier, sentiClassifier, testset, labels)
 
         print("Test accuracy: {0:.3f}".format(accuracy))
-        precRecall = {label: (precision, recalls.get(label)) for label, precision in precisions.items()}
-        for label, (prec, recall) in precRecall.items():
+        measures = {label: (precision, recall, fscore) for label, precision, recall, fscore in zip(labels, precisions, recalls, fscores)}
+        for label, (prec, recall, fscore) in measures.items():
             print("Precision for {0}: {1:.3f}".format(label, prec))
             print("Recall for {0}: {1:.3f}".format(label, recall))
-            fmeasure = 2 * prec * recall/(prec + recall)
-            print("F measure for {0}: {1:.3f}".format(label, fmeasure))
+            print("F measure for {0}: {1:.3f}".format(label, fscore))
 
 
 def getfeaturesTest(normalizedWords, extraNormalizedWords):
@@ -58,7 +57,7 @@ for category in testcorpus.categories():
         normalizedWords = normalizationFunction(words)
         extraNormalizedWords = normalizeTwitterWordsWithExtraFeatures(words)
         testfeatures = getfeaturesTest(normalizedWords, extraNormalizedWords=extraNormalizedWords)
-        testfeatureset += [(testfeatures, category)]
+        testfeatureset.append((testfeatures, category))
 
 # performTestValidation(testfeatureset, "dumps/2step/polar/multiNB/uni-bi-extra-mpqa-subj", "dumps/2step/sentiment/multiNB/uni-bi-extra-mpqa-subj")
 # performTestValidation(testfeatureset, "dumps/2step/polar/multiNB/uni-bi-extra-mpqa-subj", "dumps/2step/sentiment/logreg/uni-bi-extra-mpqa-subj")

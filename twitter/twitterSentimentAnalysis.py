@@ -82,8 +82,9 @@ for i, featuresPlusCategory in enumerate(getFeaturesetFromPickle()):
     features, category = featuresPlusCategory
     initFeatures.update(features)
 
-sklearclassifier = LinearSVC()
-performCrossValidation(featureset, labels, 10, sklearclassifier)
+sklearclassifier = MultinomialNB()
+uniqLabels = ['pos', 'neg', 'neu']
+performCrossValidation(featureset, labels, 10, sklearclassifier, uniqLabels)
 
 testfeatureset = []
 
@@ -100,8 +101,8 @@ if not os.path.exists(newFolder):
 # with open(newFolder + "/uni-bi", 'wb+') as fileout:
 # with open(newFolder + "/uni-bi-extra", 'wb+') as fileout:
 # with open(newFolder + "/uni-bi-extra-mpqa-senti", 'wb+') as fileout:
-with open(newFolder + "/uni-bi-extra-mpqa-subj", 'wb+') as fileout:
-    pickle.dump(classifier, fileout)
+# with open(newFolder + "/uni-bi-extra-mpqa-subj", 'wb+') as fileout:
+#     pickle.dump(classifier, fileout)
 
 for category in testcorpus.categories():
     for fileid in testcorpus.fileids(category):
@@ -111,4 +112,4 @@ for category in testcorpus.categories():
         testfeatures = getfeaturesTest(normalizedWords, extraNormalizedWords=extraNormalizedWords)
         testfeatureset += [(testfeatures, category)]
 
-performTestValidation(featureset, testfeatureset, sklearclassifier)
+performTestValidation(featureset, testfeatureset, sklearclassifier, uniqLabels)
