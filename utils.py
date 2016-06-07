@@ -126,6 +126,7 @@ def performCrossValidation(featureset, labels, foldsCount, sklearnclassifier, un
     for train, test in crossValidationIterations:
         trainset = [featureset[i] for i in train]
         testset = [featureset[i] for i in test]
+        print("before train")
         classifier = SklearnClassifier(sklearnclassifier).train(trainset)
 
         true = [label for features, label in testset]
